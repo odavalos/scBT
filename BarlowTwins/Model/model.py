@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from .encoder import Encoder
 from .decoder import Decoder
+from .projector import Projector
 # from .autoencoder import Autoencoder
 # from scBT.utils import 
 
@@ -19,7 +20,8 @@ class scBarlowTwins(nn.Module):
     BarlowTwins projector and loss adapted from https://github.com/facebookresearch/barlowtwins
     '''
     
-    def __init__(self, latent_dim = 50, input_size = 1723, projection_sizes):
+    def __init__(self, latent_dim = 50, input_size = 1723, projection_sizes=[8192, 8192, 8192],
+                 lambd=3.9e-3, scale_factor=1):
 
         if input_size == None or latent_dim == None:
             raise ValueError('Please provide a value for each input_size, and latent_dim')
@@ -37,14 +39,7 @@ class scBarlowTwins(nn.Module):
         self.decoder = Decoder(input_size = self.in_dim, latent_dim = self.zdim); # decoder
         
         # projector
-        sizes = projection_sizes
-        layers = []
-        for i in range(len(sizes) - 2):
-            layers.append(nn.Linear(sizes[i], sizes[i + 1], bias=False))
-            layers.append(nn.BatchNorm1d(sizes[i + 1]))
-            layers.append(nn.ReLU(inplace=True))
-        layers.append(nn.Linear(sizes[-2], sizes[-1], bias=False))
-        self.projector = nn.Sequential(*layers)
+        self.projector = Projector(latent_dim = 50); # Projector 
 
 
 

@@ -24,6 +24,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import TensorDataset, DataLoader
 
+from anndata.experimental.pytorch import AnnLoader
 from BarlowTwins import scBarlowTwins
 
 
@@ -39,19 +40,20 @@ else :
     print('==> Using CPU')
     print('    -> Warning: Using CPUs will yield to slower training time than GPUs')
 
-    
+
 # creating the parser
 parser = argparse.ArgumentParser()
 
-# parser.add_argument('--in_path', type = str, required = True, help = 'Path to adata object')
+parser.add_argument('--in_path', type = str, required = True, help = 'Path to adata object')
+parser.add_argument('--out_path', type = str, required = True, help = 'Path for output anndata object')
 # parser.add_argument('--train_split', default = True, action='store_true', help='Looks for split and pulls out `Train` labeled cells for training, default = True')
-parser.add_argument('--min_filtering', default = True, action='store_true', help='Performs a minimum filtering using `filter_genes` & `filter_cells`, default = True')
+# parser.add_argument('--min_filtering', default = True, action='store_true', help='Performs a minimum filtering using `filter_genes` & `filter_cells`, default = True')
 
-# args = parser.parse_args()
+args = parser.parse_args()
 
-# # reading in dataset
+# reading in dataset
 
-# adata = sc.read_h5ad(args.in_path)
+adata = sc.read_h5ad(args.in_path)
 
 # datasplit = args.train_split
 
@@ -63,9 +65,9 @@ parser.add_argument('--min_filtering', default = True, action='store_true', help
 # else:
 #     print("    -> Data is ready as is.")
 
+dataloader = AnnLoader(adata, batch_size=128, shuffle=True, use_cuda=device)
 
-
-def train_AE(model, x, batch_size=128, lr=0.0001, epochs=50):
+def train_AE(model, train_loader, batch_size=128, lr=0.0001, epochs=50):
 
         optimizer = torch.optim.Adam(params=model.parameters(), 
                                 lr=lr, 
@@ -73,24 +75,24 @@ def train_AE(model, x, batch_size=128, lr=0.0001, epochs=50):
                                 eps=1e-08, 
                                 weight_decay=0.005, 
                                 amsgrad=False)
-    
-        dataset = TensorDataset(torch.Tensor(x))
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        
+#        dataloader = AnnLoader(adata, batch_size=batch_size, shuffle=True, use_cuda=use_cuda)
+#        dataset = TensorDataset(torch.Tensor(x))
+#        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
         print("==>Training")
-
 #         print(f"Total number of *trainable parameters* : {count_parameters(model)}")
         
         for epoch in range(epochs):
-            for batch_idx, (x_batch) in enumerate(dataloader):
+            for batch in train_loader:
                 
-                x_tensor = Variable(x_batch).to(device)
+#                x_tensor = Variable(x_batch).to(device)
                 
                 ################# Forward #################
-                z1, z2, recon1, recon2, barlow_loss = model(x_tensor, x_tensor, device=device)
+                z1, z2, recon1, recon2, barlow_loss = model(batch.X.float(), batch.X.float())
                 
                 # MSE Loss
-                mse_loss1 = F.mse_loss(recon1, x_tensor)
-                mse_loss2 = F.mse_loss(recon2, x_tensor)
+                mse_loss1 = F.mse_loss(recon1, batch.X.float())
+                mse_loss2 = F.mse_loss(recon2, batch.X.float())
                 
                 # Combined Loss 
                 loss = mse_loss1 + mse_loss2 + barlow_loss
@@ -103,7 +105,7 @@ def train_AE(model, x, batch_size=128, lr=0.0001, epochs=50):
                 optimizer.step()
 
             ################# Logs #################
-            print('Epoch [{}/{}], Combined loss:{:.4f}'.format(epoch+1, epochs, loss.item()))
+            print('Epoch [{}/{}], Joint loss:{:.4f}'.format(epoch+1, epochs, loss.item()))
             
             # find best model
             state = loss.item()
@@ -116,22 +118,15 @@ bt_model = scBarlowTwins(input_size=adata.n_vars, projection_sizes=[1024, 1024, 
 
 # train model
 bt_trained = train_AE(bt_model, 
-                       x=adata.X, 
+                       dataloader, 
                        batch_size=128, 
                        lr=0.0001, 
                        epochs=500)
 
 
-# dca_model.eval()
 
-# with torch.no_grad():
-#     # Get generated latent space
-#     z = dca_model.encoder(adata.X);
-#     z_numpy = z.cpu().detach().numpy()
-
-
-z = dca_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[0].detach().numpy()
-z2 = dca_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[1].detach().numpy()
+z = bt_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[0].detach().numpy()
+z2 = bt_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[1].detach().numpy()
 
 
 # add autoencoder latent data to scanpy object
@@ -142,12 +137,12 @@ sc.tl.leiden(adata, resolution=0.4,random_state=2022, restrict_to=None, key_adde
                   obsp='ae_cord_connectivities')
 
 sc.tl.umap(adata, neighbors_key='ae_cord', n_components=2)
-# sc.tl.draw_graph(adata, neighbors_key='ae_cord')
 
-# sc.pl.draw_graph(adata, color=['leiden_ae','CD8A', 'NKG7', 'CD4'], use_raw=True)
+sc.pl.umap(adata, color=['leiden_ae','seurat_annotations', 'stim'], use_raw=True, save='_scBT_latent.pdf')
 
-sc.pl.umap(adata, color=['leiden_ae','CD8A', 'NKG7', 'CD4'], use_raw=True, save='_scBT_latent.pdf')
 
 
 # save scanpy object
-adata.write_h5ad('../../scBT.h5ad')
+adata.write_h5ad(''.join[args.out_path,'scBT.h5ad'])
+    
+    
