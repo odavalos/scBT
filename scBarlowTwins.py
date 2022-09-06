@@ -63,65 +63,6 @@ parser.add_argument('--min_filtering', default = True, action='store_true', help
 # else:
 #     print("    -> Data is ready as is.")
 
-# # read in testing data
-# adata = sc.read_h5ad('~/JupyterNBs/Misc_Projects/pbmc_3k_dca.h5ad')
-pbmc3k = sc.datasets.pbmc3k_processed()
-adata = sc.datasets.pbmc3k()
-celltypes_series = pbmc3k.obs['louvain']
-filt_barcodes = list(celltypes_series.index)
-adata.obs['barcodes'] = adata.obs.index
-
-# filter certain barcodes
-adata = adata[adata.obs.index.isin(filt_barcodes)]
-
-adata.obs['louvain'] = celltypes_series
-
-# ### std processing ###
-# # filter low expressed genes
-# if args.min_filtering:
-#     print("    -> Filtering lowly expressed genes.")
-#     sc.pp.filter_genes(adata, min_counts=3)
-#     sc.pp.filter_cells(adata, min_counts=3)
-
-# else:
-#     print("    -> Filtering skipped.")
-
-# filter low expressed genes
-sc.pp.filter_genes(adata, min_counts=3)
-sc.pp.filter_cells(adata, min_counts=3)
-
-
-
-
-# # keep raw data object
-# adata.raw = adata.copy()
-
-sc.pp.normalize_per_cell(adata)
-# calculate size factors from library sizes (n_counts)
-adata.obs['size_factors'] = adata.obs.n_counts / np.median(adata.obs.n_counts)
-
-# log trans
-sc.pp.log1p(adata)
-
-# # save raw object
-# adata.raw = adata
-
-# compute variable genes
-sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
-print("Highly variable genes: %d"%sum(adata.var.highly_variable))
-
-#plot variable genes
-sc.pl.highly_variable_genes(adata)
-
-# subset for variable genes in the dataset
-adata = adata[:, adata.var['highly_variable']]
-
-
-# save raw object
-adata.raw = adata
-
-# scale data
-sc.pp.scale(adata)
 
 
 def train_AE(model, x, batch_size=128, lr=0.0001, epochs=50):
@@ -170,7 +111,7 @@ def train_AE(model, x, batch_size=128, lr=0.0001, epochs=50):
         
         return model
 
-bt_model = scBarlowTwins(input_size=adata.n_vars).to(device)
+bt_model = scBarlowTwins(input_size=adata.n_vars, projection_sizes=[1024, 1024, 1024]).to(device)
 
 
 # train model
@@ -180,7 +121,6 @@ bt_trained = train_AE(bt_model,
                        lr=0.0001, 
                        epochs=500)
 
-##### SHOULD BE IN A DIFFERENT SCRIPT
 
 # dca_model.eval()
 
@@ -206,8 +146,8 @@ sc.tl.umap(adata, neighbors_key='ae_cord', n_components=2)
 
 # sc.pl.draw_graph(adata, color=['leiden_ae','CD8A', 'NKG7', 'CD4'], use_raw=True)
 
-sc.pl.umap(adata, color=['leiden_ae','CD8A', 'NKG7', 'CD4'], use_raw=True, save='_twindca_latent.pdf')
+sc.pl.umap(adata, color=['leiden_ae','CD8A', 'NKG7', 'CD4'], use_raw=True, save='_scBT_latent.pdf')
 
 
 # save scanpy object
-adata.write_h5ad('../../scSimCLR.h5ad')
+adata.write_h5ad('../../scBT.h5ad')
