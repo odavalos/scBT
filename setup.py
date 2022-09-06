@@ -20,7 +20,7 @@ setup(
       install_requires=[
                         'scanpy>=1.9.1',
                         'numpy>=1.21.5',
-                        'pytorch>=1.12.1',
+                        'torch>=1.12.1',
                         'scikit-learn>=1.1.2'
                         ]
 )
