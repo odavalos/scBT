@@ -64,7 +64,7 @@ class scBarlowTwins(nn.Module):
         p2 = self.projector(z2)
 
         # empirical cross-correlation matrix
-        c = torch.mm(self.bn(z1).T, self.bn(z2))
+        c = torch.mm(self.bn(p1).T, self.bn(p2))
         c.div_(z1.shape[0])
 
 
