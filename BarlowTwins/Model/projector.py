@@ -30,17 +30,17 @@ class Projector(nn.Module):
 
 
 
-        def forward(self, x):        
-            """
+    def forward(self, x):        
+        """
 
-            Forward pass of the projector
+        Forward pass of the projector
 
-            """
+        """
 
-            p = self.proj(x)
+        p = self.proj(x)
 
 
-            return p
+        return p
     
 
         
