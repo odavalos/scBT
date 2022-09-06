@@ -40,6 +40,9 @@ class scBarlowTwins(nn.Module):
         
         # projector
         self.projector = Projector(latent_dim = 50); # Projector 
+        
+        # normalization layer for the representations z1 and z2
+        self.bn = nn.BatchNorm1d(1024, affine=False) # change eventually
 
 
 
