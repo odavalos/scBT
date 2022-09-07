@@ -54,17 +54,20 @@ args = parser.parse_args()
 # reading in dataset
 adata = sc.read_h5ad(args.in_path)
 
-# datasplit = args.train_split
+datasplit = args.train_split
 
-# if datasplit:
-#         print("    -> Extracting the training data.") 
+if datasplit:
+        print("    -> Extracting the training data.") 
         
-#         adata = adata[adata.obs['split'] == 'train']
+        adata_test = adata[adata.obs['split'] == 'test']
+        adata = adata[adata.obs['split'] == 'train']
         
-# else:
-#     print("    -> Data is ready as is.")
+        
+else:
+    print("    -> Data is ready as is.")
 
 dataloader = AnnLoader(adata, batch_size=128, shuffle=True, use_cuda=device)
+dataloader_test = AnnLoader(adata_test, batch_size=128, shuffle=True, use_cuda=device)
 
 def train_AE(model, train_loader, batch_size=128, lr=0.0001, epochs=50):
 
@@ -120,8 +123,9 @@ bt_trained = train_AE(bt_model,
 
 
 # new method for extracting latent space
-full_data = dataloader.dataset[:]
-lspace = bt_model.encoder(full_data.X.float())[:, :50] # get latent space
+# full_data = dataloader.dataset[:]
+test_data = dataloader_test.dataset[:]
+lspace = bt_model.encoder(test_data.X.float())[:, :50] # get latent space
 
 # does not work 
 # z = bt_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[0].detach().numpy()
