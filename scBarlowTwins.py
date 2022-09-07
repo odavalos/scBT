@@ -46,7 +46,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--in_path', type = str, required = True, help = 'Path to adata object')
 parser.add_argument('--out_path', type = str, required = True, help = 'Path for output anndata object')
-# parser.add_argument('--train_split', default = True, action='store_true', help='Looks for split and pulls out `Train` labeled cells for training, default = True')
+parser.add_argument('--train_split', default = True, action='store_true', help='Looks for split and pulls out `Train` labeled cells for training, default = True')
 # parser.add_argument('--min_filtering', default = True, action='store_true', help='Performs a minimum filtering using `filter_genes` & `filter_cells`, default = True')
 
 args = parser.parse_args()
