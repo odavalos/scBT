@@ -13,9 +13,9 @@ import scanpy as sc
 import seaborn as sns
 # plt.style.use('seaborn')
 
-# sklearn clustering
-from sklearn.cluster import KMeans
-from sklearn import mixture
+# # sklearn clustering
+# from sklearn.cluster import KMeans
+# from sklearn import mixture
 
 # pytorch
 import torch
@@ -52,7 +52,6 @@ parser.add_argument('--out_path', type = str, required = True, help = 'Path for 
 args = parser.parse_args()
 
 # reading in dataset
-
 adata = sc.read_h5ad(args.in_path)
 
 # datasplit = args.train_split
@@ -76,16 +75,12 @@ def train_AE(model, train_loader, batch_size=128, lr=0.0001, epochs=50):
                                 weight_decay=0.005, 
                                 amsgrad=False)
         
-#        dataloader = AnnLoader(adata, batch_size=batch_size, shuffle=True, use_cuda=use_cuda)
-#        dataset = TensorDataset(torch.Tensor(x))
-#        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        
         print("==>Training")
 #         print(f"Total number of *trainable parameters* : {count_parameters(model)}")
         
         for epoch in range(epochs):
             for batch in train_loader:
-                
-#                x_tensor = Variable(x_batch).to(device)
                 
                 ################# Forward #################
                 z1, z2, recon1, recon2, barlow_loss = model(batch.X.float(), batch.X.float())
@@ -121,17 +116,21 @@ bt_trained = train_AE(bt_model,
                        dataloader, 
                        batch_size=128, 
                        lr=0.0001, 
-                       epochs=500)
+                       epochs=200)
 
 
+# new method for extracting latent space
+full_data = dataloader.dataset[:]
+lspace = bt_model.encoder(full_data.X.float())[:, :50] # get latent space
 
-z = bt_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[0].detach().numpy()
-z2 = bt_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[1].detach().numpy()
+# does not work 
+# z = bt_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[0].detach().numpy()
+# z2 = bt_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[1].detach().numpy()
 
 
 # add autoencoder latent data to scanpy object
-adata.obsm['X_AE_1'] = z
-adata.obsm['X_AE_2'] = z2
+adata.obsm['X_AE_1'] = lspace.data.cpu().numpy()
+# adata.obsm['X_AE_2'] = z2
 sc.pp.neighbors(adata, n_neighbors=20, n_pcs=None, use_rep='X_AE_1', random_state=2022, key_added='ae_cord')
 sc.tl.leiden(adata, resolution=0.4,random_state=2022, restrict_to=None, key_added='leiden_ae', 
                   obsp='ae_cord_connectivities')
@@ -142,7 +141,8 @@ sc.pl.umap(adata, color=['leiden_ae','seurat_annotations', 'stim'], use_raw=True
 
 
 
+
 # save scanpy object
-adata.write_h5ad(''.join[args.out_path,'scBT.h5ad'])
+adata.write_h5ad(''.join(map(str,[(args.out_path),'scBT.h5ad'])))
     
     
