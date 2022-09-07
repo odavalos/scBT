@@ -3,7 +3,6 @@ import torch.nn as nn
 from .encoder import Encoder
 from .decoder import Decoder
 from .projector import Projector
-# from .autoencoder import Autoencoder
 # from scBT.utils import 
 
 
@@ -14,7 +13,6 @@ def off_diagonal(x):
     return x.flatten()[:-1].view(n - 1, n + 1)[:, 1:].flatten()
 
 
-# 13766
 class scBarlowTwins(nn.Module):
     '''
     BarlowTwins projector and loss adapted from https://github.com/facebookresearch/barlowtwins
@@ -29,7 +27,7 @@ class scBarlowTwins(nn.Module):
         super(scBarlowTwins, self).__init__()
         self.in_dim = input_size;
         self.zdim = latent_dim;
-        # self.backbone = backbone;
+        # self.backbone = backbone; # can work on setting the backbone as a separate network
         self.lambd = lambd;
         self.scale_factor = scale_factor;
         # self.last_layer = final_layer;
@@ -74,5 +72,3 @@ class scBarlowTwins(nn.Module):
         
         return z1, z2, recon1, recon2, loss
 
-
-        # return z1, z2, recon1, recon2
