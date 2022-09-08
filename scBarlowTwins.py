@@ -47,6 +47,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--in_path', type = str, required = True, help = 'Path to adata object')
 parser.add_argument('--out_path', type = str, required = True, help = 'Path for output anndata object')
 parser.add_argument('--train_split', default = True, action='store_true', help='Looks for split and pulls out `Train` labeled cells for training, default = True')
+parser.add_argument('--out_name', type = str, default = '', required = False, help = 'Name for output h5ad file. Default name will be scBT.h5ad')
 # parser.add_argument('--min_filtering', default = True, action='store_true', help='Performs a minimum filtering using `filter_genes` & `filter_cells`, default = True')
 
 args = parser.parse_args()
@@ -146,7 +147,10 @@ sc.pl.umap(adata, color=['leiden_ae','seurat_annotations', 'stim'], use_raw=True
 
 
 
-# save scanpy object
-adata.write_h5ad(''.join(map(str,[(args.out_path),'scBT.h5ad'])))
+# save scanpy object                                                                                                    
+if opt.out_name:
+    adata_test.write_h5ad(''.join(map(str,[(args.out_path), (args.out_name),'scBT.h5ad'])))
+else:
+    adata_test.write_h5ad(''.join(map(str,[(args.out_path),'scBT.h5ad'])))
     
     
