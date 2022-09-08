@@ -120,8 +120,11 @@ bt_trained = train_AE(bt_model,
                        dataloader, 
                        batch_size=128, 
                        lr=0.0001, 
-                       epochs=200)
+                       epochs=200) # add args to change parameters
 
+
+# save model weights
+# torch.save(bt_model, ''.join(map(str,[(args.out_path),'/model_weights/','scBT_'(args.out_name),'_300epochs.pth']))) # add parameter here
 
 # new method for extracting latent space
 # full_data = dataloader.dataset[:]
@@ -144,7 +147,7 @@ sc.tl.leiden(adata, resolution=0.4,random_state=2022, restrict_to=None, key_adde
 
 sc.tl.umap(adata, neighbors_key='ae_cord', n_components=2)
 
-sc.pl.umap(adata, color=['leiden_ae','seurat_annotations', 'stim'], use_raw=True, save='_scBT_latent.pdf')
+sc.pl.umap(adata, color=['leiden_ae'], use_raw=True, save='_scBT_latent.pdf')
 
 
 
