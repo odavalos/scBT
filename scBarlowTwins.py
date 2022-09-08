@@ -60,8 +60,8 @@ datasplit = args.train_split
 if datasplit:
         print("    -> Extracting the training data.") 
         
-        adata_test = adata[adata.obs['split'] == 'test']
-        adata = adata[adata.obs['split'] == 'train']
+        adata_test = adata[adata.obs['split'] == 'test'] # test data
+        adata = adata[adata.obs['split'] == 'train'] # train data
         
         
 else:
@@ -126,7 +126,9 @@ bt_trained = train_AE(bt_model,
 # new method for extracting latent space
 # full_data = dataloader.dataset[:]
 # test_data = dataloader_test.dataset[:]
-lspace = bt_model.encoder(torch.tensor(adata_test.X.todense()).to(device))[:, :50] # get latent space
+
+test_data_tensor = torch.tensor(adata_test.X).to(torch.float32)
+lspace = bt_model.encoder(test_data_tensor.to(device))[:, :50] # get latent space
 
 # does not work 
 # z = bt_trained(torch.Tensor(adata.X), torch.Tensor(adata.X))[0].detach().numpy()
