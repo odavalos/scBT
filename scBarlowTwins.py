@@ -152,10 +152,12 @@ sc.pl.umap(adata, color=['leiden_ae'], use_raw=True, save='_scBT_latent.pdf')
 
 
 
-# save scanpy object                                                                                                    
-if opt.out_name:
-    adata_test.write_h5ad(''.join(map(str,[(args.out_path), (args.out_name),'scBT.h5ad'])))
-else:
-    adata_test.write_h5ad(''.join(map(str,[(args.out_path),'scBT.h5ad'])))
+# save scanpy object
+adata_test.write_h5ad(''.join(map(str,[(args.out_path), (args.out_name),'scBT.h5ad'])))
+
+# if args.out_name:
+#     adata_test.write_h5ad(''.join(map(str,[(args.out_path), (args.out_name),'scBT.h5ad'])))
+# else:
+#     adata_test.write_h5ad(''.join(map(str,[(args.out_path),'scBT.h5ad'])))
     
     
