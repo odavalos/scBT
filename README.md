@@ -20,7 +20,7 @@ pip install -e .
   - [ ] Add early stopping
   - [ ] Add model saving (best epoch)
 - [ ] Test data masking methods (currently using `dropout p=0.10``)
-- [ ] Add different loss functions (InfoNCE, [Soft-Nearest Neighbors Loss](https://arxiv.org/abs/1902.01889))?
+- [ ] Add different loss functions ([InfoNCE](https://arxiv.org/abs/1807.03748), [Soft-Nearest Neighbors Loss](https://arxiv.org/abs/1902.01889))?
 - [ ] Try shallower networks
 
 
