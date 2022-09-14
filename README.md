@@ -14,9 +14,13 @@ pip install -e .
 
 ## TO DO LIST
 
-- [ ] Update dataloader to use experimental [Annloader](https://anndata-tutorials.readthedocs.io/en/latest/annloader.html)
+- [x] Update dataloader to use experimental [Annloader](https://anndata-tutorials.readthedocs.io/en/latest/annloader.html)
 - [ ] Figure out how to extract latent space if I call autoencoder class in model.py as the backbone.
 - [ ] Update training code
+  - [ ] Add early stopping
+  - [ ] Add model saving (best epoch)
 - [ ] Test data masking methods (currently using `dropout p=0.10``)
+- [ ] Add different loss functions (InfoNCE, [Soft-Nearest Neighbors Loss](https://arxiv.org/abs/1902.01889))?
+- [ ] Try shallower networks
 
 
